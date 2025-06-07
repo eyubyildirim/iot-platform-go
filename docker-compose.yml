@@ -1,0 +1,39 @@
+# docker-compose.yml (or compose.yml)
+services:
+  # This is the PostgreSQL database service
+  db:
+    image: postgres:16 # Use a specific version for stability (e.g., 16, 15, 14). Avoid 'latest' in production.
+    container_name: iot_platform_postgres # Optional: Give your container a memorable name
+    environment:
+      # Required environment variables for PostgreSQL initialization
+      POSTGRES_DB: iot_platform # Your database name
+      POSTGRES_USER: eyub # Your database user
+      POSTGRES_PASSWORD: 1234 # Your database password (CHANGE THIS!)
+      # Optional: Where to store data inside the container. Default is /var/lib/postgresql/data
+      # PGDATA: /var/lib/postgresql/data/pgdata 
+    ports:
+      # Host_Port:Container_Port
+      # Map port 5432 on your host to port 5432 in the container
+      # This allows you to connect to the database from your local machine
+      - "5432:5432" 
+    volumes:
+      # Data persistence:
+      # This creates a named volume 'db_data' on your Docker host
+      # and mounts it to the PostgreSQL data directory inside the container.
+      # This ensures your data persists even if the container is removed or recreated.
+      - db_data:/var/lib/postgresql/data 
+      # Optional: If you have custom config files or initialization scripts
+      # - ./docker/db/custom_postgresql.conf:/etc/postgresql/postgresql.conf # Custom config
+      # - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql # SQL script to run on first start
+    restart: unless-stopped # Automatically restart the container unless it's explicitly stopped
+    healthcheck:
+      # Checks if the database is ready to accept connections
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s # Allow time for the DB to start up before checking
+
+# Define the named volume used above
+volumes:
+  db_data: # This will be created by Docker when you run docker compose up
