@@ -1,0 +1,9 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": "5432",
+    "user": "eyub",
+    "pass": "1234",
+    "db": "iot_platform"
+  }
+}

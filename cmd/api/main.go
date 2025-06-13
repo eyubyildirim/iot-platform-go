@@ -9,7 +9,12 @@ import (
 )
 
 func main() {
-	db, err := database.InitDb()
+	config, err := loadConfiguration("/Users/eyubyildirim/Documents/go-projects/iot-platform/config.json")
+	if err != nil {
+		log.Fatalf("problem parsing config: %s", err)
+	}
+
+	db, err := database.InitDb(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Pass, config.Database.Db)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,7 +27,6 @@ func main() {
 	service := service.NewDevicesService(repo)
 
 	err = service.CreateDevice(context.Background(), &model.Device{
-		Id:     "53bafafa-31e2-4fcb-bfa6-628b6671ee19",
 		Name:   "TestDevice2",
 		Kind:   "TestType",
 		ApiKey: "1111aaaa",
