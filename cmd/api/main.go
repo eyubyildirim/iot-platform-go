@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"iot-platform/internal/database"
+	"iot-platform/internal/database/postgres/device"
 	"iot-platform/internal/model"
 	"iot-platform/internal/service"
 	"log"
@@ -14,13 +14,13 @@ func main() {
 		log.Fatalf("problem parsing config: %s", err)
 	}
 
-	db, err := database.InitDb(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Pass, config.Database.Db)
+	db, err := device.InitDb(config.Database.Host, config.Database.Port, config.Database.User, config.Database.Pass, config.Database.Db)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	repo, err := database.NewDevicePostgresRepository(db)
+	repo, err := device.NewDevicePostgresRepository(db)
 	if err != nil {
 		log.Fatal("error connecting to database")
 	}
