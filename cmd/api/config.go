@@ -5,6 +5,10 @@ import (
 	"os"
 )
 
+type ServerConfig struct {
+	Port string `json:"port"`
+}
+
 type DatabaseConfig struct {
 	Host string `json:"host"`
 	Port string `json:"port"`
@@ -15,6 +19,7 @@ type DatabaseConfig struct {
 
 type Config struct {
 	Database DatabaseConfig `json:"database"`
+	Server   ServerConfig   `json:"server"`
 }
 
 func loadConfiguration(path string) (*Config, error) {
@@ -45,6 +50,10 @@ func loadConfiguration(path string) (*Config, error) {
 
 	if config.Database.Db == "" {
 		config.Database.Db = "iot_platform"
+	}
+
+	if config.Server.Port == "" {
+		config.Server.Port = "3000"
 	}
 
 	return &config, nil

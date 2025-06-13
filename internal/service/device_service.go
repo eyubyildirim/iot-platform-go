@@ -8,7 +8,7 @@ import (
 )
 
 type deviceService interface {
-	CreateDevice(ctx context.Context, device *model.Device) error
+	CreateDevice(ctx context.Context, device *model.Device) (string, error)
 	UpdateDevice(ctx context.Context, id string, newDevice *model.Device) error
 	FindDeviceById(ctx context.Context, id string) (*model.Device, error)
 	FetchDevices(ctx context.Context, page int, pageSize int) ([]*model.Device, error)
@@ -25,13 +25,13 @@ func NewDevicesService(repo repository.DevicesRepository) *DeviceService {
 	}
 }
 
-func (de *DeviceService) CreateDevice(ctx context.Context, device *model.Device) error {
-	err := de.repo.SaveDevice(ctx, device)
+func (de *DeviceService) CreateDevice(ctx context.Context, device *model.Device) (string, error) {
+	deviceId, err := de.repo.SaveDevice(ctx, device)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return deviceId, nil
 }
 
 func (de *DeviceService) UpdateDevice(ctx context.Context, id string, newDevice *model.Device) error {
@@ -48,7 +48,7 @@ func (de *DeviceService) UpdateDevice(ctx context.Context, id string, newDevice 
 	}
 	device.UpdatedAt = time.Now()
 
-	err = de.repo.SaveDevice(ctx, device)
+	_, err = de.repo.SaveDevice(ctx, device)
 	if err != nil {
 		return err
 	}

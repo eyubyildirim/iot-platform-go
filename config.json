@@ -5,5 +5,8 @@
     "user": "eyub",
     "pass": "1234",
     "db": "iot_platform"
+  },
+  "server": {
+    "port": "3000"
   }
 }

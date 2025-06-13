@@ -6,23 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"iot-platform/internal/model"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
-
-func InitDb(host, port, user, pass, dbName string) (*sql.DB, error) {
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, port, dbName)
-
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return db, nil
-}
 
 type DevicePostgresRepository struct {
 	db *sql.DB
@@ -38,23 +26,24 @@ func NewDevicePostgresRepository(db *sql.DB) (*DevicePostgresRepository, error) 
 	}, nil
 }
 
-func (de *DevicePostgresRepository) SaveDevice(ctx context.Context, device *model.Device) error {
+func (de *DevicePostgresRepository) SaveDevice(ctx context.Context, device *model.Device) (string, error) {
 	if device.Id == "" {
 		fmt.Println("Test")
-		_, err := de.db.Exec(`INSERT INTO devices (id, name, kind, api_key) VALUES ($1, $2, $3, $4)`, uuid.New().String(), device.Name, device.Kind, device.ApiKey)
+		newDeviceId := uuid.New().String()
+		_, err := de.db.Exec(`INSERT INTO devices (id, name, kind, api_key) VALUES ($1, $2, $3, $4)`, newDeviceId, device.Name, device.Kind, device.ApiKey)
 
 		if err != nil {
-			return err
+			return newDeviceId, err
 		}
 
-		return nil
+		return newDeviceId, nil
 	} else {
 		_, err := de.db.Exec(`UPDATE devices SET name = $1, kind = $2, api_key = $3, updated_at = $4 WHERE id = $5`, device.Name, device.Kind, device.ApiKey, time.Now(), device.Id)
 		if err != nil {
-			return err
+			return device.Id, err
 		}
 
-		return nil
+		return device.Id, nil
 	}
 
 }

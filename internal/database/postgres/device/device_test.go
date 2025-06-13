@@ -39,7 +39,7 @@ func TestDevicePostgresRepository_SaveDevice_InsertSuccess(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(1, 1))                                        // Simulate 1 row inserted, 1 row affected (ID is not auto-increment here)
 
 	ctx := context.Background()
-	err = repo.SaveDevice(ctx, testDevice)
+	_, err = repo.SaveDevice(ctx, testDevice)
 
 	if err != nil {
 		t.Errorf("expected no error, but got: %v", err)
@@ -74,7 +74,7 @@ func TestDevicePostgresRepository_SaveDevice_InsertFailure(t *testing.T) {
 		WithArgs(sqlmock.AnyArg(), testDevice.Name, testDevice.Kind, testDevice.ApiKey).
 		WillReturnError(insertErr)
 
-	err = repo.SaveDevice(context.Background(), testDevice)
+	_, err = repo.SaveDevice(context.Background(), testDevice)
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -104,7 +104,7 @@ func TestDevicePostgresRepository_SaveDevice_InsertArgumentError(t *testing.T) {
 		Id:     "",
 	}
 
-	err = repo.SaveDevice(context.Background(), testDevice)
+	_, err = repo.SaveDevice(context.Background(), testDevice)
 
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -143,7 +143,7 @@ func TestDevicePostgresRepository_SaveDevice_UpdateSuccess(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	ctx := context.Background()
-	err = repo.SaveDevice(ctx, testDevice)
+	_, err = repo.SaveDevice(ctx, testDevice)
 
 	if err != nil {
 		t.Errorf("expected no error, but got: %v", err)
@@ -183,7 +183,7 @@ func TestDevicePostgresRepository_SaveDevice_UpdateFailure(t *testing.T) {
 		WillReturnError(updateErr)
 
 	ctx := context.Background()
-	err = repo.SaveDevice(ctx, testDevice)
+	_, err = repo.SaveDevice(ctx, testDevice)
 
 	if err == nil {
 		t.Error("expected error, got nil")
