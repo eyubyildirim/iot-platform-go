@@ -2,6 +2,7 @@ package main
 
 import (
 	"iot-platform/internal/api/http/handler"
+	"iot-platform/internal/api/http/middleware"
 	"iot-platform/internal/database/postgres"
 	"iot-platform/internal/database/postgres/device"
 	"iot-platform/internal/database/postgres/sensordata"
@@ -42,6 +43,7 @@ func main() {
 	mux.HandleFunc("GET /devices/{id}", deviceHandler.GetDevice)
 	mux.HandleFunc("PUT /devices/{id}", deviceHandler.UpdateDevice)
 	mux.HandleFunc("DELETE /devices/{id}", deviceHandler.DeleteDevice)
+	mux.Handle("POST /devices/{id}/data", middleware.AuthMiddleware(deviceRepo)(http.HandlerFunc(deviceHandler.SaveData)))
 
 	sensorDataHandler := handler.NewSensorDataHandler(*sensorDataService)
 	mux.HandleFunc("GET /sensor-data", sensorDataHandler.ListSensorData)
