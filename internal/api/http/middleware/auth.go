@@ -20,6 +20,7 @@ func AuthMiddleware(repo repository.DevicesRepository) func(http.Handler) http.H
 			}
 			if apiKey == "" {
 				http.Error(w, "no api key is provided", http.StatusUnauthorized)
+				return
 			}
 
 			device, err := repo.FindDeviceById(ctx, id)
