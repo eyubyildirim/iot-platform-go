@@ -2,7 +2,8 @@ package middleware
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"iot-platform/internal/database/postgres/device"
 	"iot-platform/internal/repository"
 	"net/http"
 )
@@ -23,13 +24,18 @@ func AuthMiddleware(repo repository.DevicesRepository) func(http.Handler) http.H
 				return
 			}
 
-			device, err := repo.FindDeviceById(ctx, id)
-			if err != nil || device.ApiKey != apiKey {
-				http.Error(w, fmt.Sprint("invalid device id or api key"), http.StatusUnauthorized)
+			dev, err := repo.FindDeviceById(ctx, id)
+			if err != nil {
+				if errors.Is(device.ErrDeviceNotFound, err) || apiKey != dev.ApiKey {
+					http.Error(w, "unauthorized", http.StatusUnauthorized)
+					return
+				}
+
+				http.Error(w, "internal server error", http.StatusInternalServerError)
 				return
 			}
 
-			ctx = context.WithValue(ctx, "device", device)
+			ctx = context.WithValue(ctx, "device", dev)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
