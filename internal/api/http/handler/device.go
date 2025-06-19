@@ -192,3 +192,7 @@ func (h *DeviceHandler) DeleteDevice(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *DeviceHandler) SaveData(w http.ResponseWriter, r *http.Request) {
+
+}
