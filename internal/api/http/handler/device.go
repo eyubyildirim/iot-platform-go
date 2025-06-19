@@ -134,12 +134,14 @@ func (h *DeviceHandler) GetDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	device, err := h.service.FindDeviceById(r.Context(), id)
-	if errors.Is(deviceRepo.ErrDeviceNotFound, err) {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	} else {
-		http.Error(w, "failed to find device", http.StatusInternalServerError)
-		return
+	if err != nil {
+		if errors.Is(deviceRepo.ErrDeviceNotFound, err) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		} else {
+			http.Error(w, "failed to find device", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	response := toUserResponse(device)
