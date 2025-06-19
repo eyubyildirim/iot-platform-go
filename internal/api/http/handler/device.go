@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
+	deviceRepo "iot-platform/internal/database/postgres/device"
 	"iot-platform/internal/model"
 	"iot-platform/internal/service"
 	"net/http"
@@ -125,14 +127,17 @@ func (h *DeviceHandler) ListDevices(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DeviceHandler) GetDevice(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := r.PathValue("id")
 	if id == "" {
 		http.Error(w, "device ID is required", http.StatusBadRequest)
 		return
 	}
 
 	device, err := h.service.FindDeviceById(r.Context(), id)
-	if err != nil {
+	if errors.Is(deviceRepo.ErrDeviceNotFound, err) {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	} else {
 		http.Error(w, "failed to find device", http.StatusInternalServerError)
 		return
 	}
@@ -143,7 +148,7 @@ func (h *DeviceHandler) GetDevice(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DeviceHandler) UpdateDevice(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := r.PathValue("id")
 	if id == "" {
 		http.Error(w, "device ID is required", http.StatusBadRequest)
 		return
@@ -172,7 +177,7 @@ func (h *DeviceHandler) UpdateDevice(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DeviceHandler) DeleteDevice(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := r.PathValue("id")
 	if id == "" {
 		http.Error(w, "device ID is required", http.StatusBadRequest)
 		return

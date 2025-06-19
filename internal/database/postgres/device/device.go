@@ -12,6 +12,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var (
+	ErrDeviceNotFound = errors.New("device not found")
+)
+
 type DevicePostgresRepository struct {
 	db *sql.DB
 }
@@ -55,7 +59,7 @@ func (de *DevicePostgresRepository) FindDeviceById(ctx context.Context, id strin
 
 	err := row.Scan(&device.Id, &device.Name, &device.Kind, &device.ApiKey, &device.CreatedAt, &device.UpdatedAt)
 	if err != nil {
-		return nil, err
+		return nil, ErrDeviceNotFound
 	}
 
 	return &device, nil
@@ -73,7 +77,7 @@ func (de *DevicePostgresRepository) DeleteDevice(ctx context.Context, id string)
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("no device found with id: %s", id)
+		return ErrDeviceNotFound
 	}
 
 	return nil
@@ -89,7 +93,7 @@ func (de *DevicePostgresRepository) ListDevices(ctx context.Context, page int, p
 	var devices []*model.Device
 	for rows.Next() {
 		var device model.Device
-		err := rows.Scan(&device.Id, &device.Name, &device.Kind, &device.ApiKey, &device.UpdatedAt, &device.CreatedAt)
+		err := rows.Scan(&device.Id, &device.Name, &device.Kind, &device.ApiKey, &device.CreatedAt, &device.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
