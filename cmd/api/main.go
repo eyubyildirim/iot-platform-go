@@ -43,11 +43,10 @@ func main() {
 	mux.HandleFunc("GET /devices/{id}", deviceHandler.GetDevice)
 	mux.HandleFunc("PUT /devices/{id}", deviceHandler.UpdateDevice)
 	mux.HandleFunc("DELETE /devices/{id}", deviceHandler.DeleteDevice)
-	mux.Handle("POST /devices/{id}/data", middleware.AuthMiddleware(deviceRepo)(http.HandlerFunc(deviceHandler.SaveData)))
 
 	sensorDataHandler := handler.NewSensorDataHandler(*sensorDataService)
 	mux.HandleFunc("GET /sensor-data", sensorDataHandler.ListSensorData)
-	mux.HandleFunc("POST /sensor-data", sensorDataHandler.CreateSensorData)
+	mux.Handle("POST /sensor-data/{deviceId}", middleware.AuthMiddleware(deviceRepo)(http.HandlerFunc(sensorDataHandler.CreateSensorData)))
 	mux.HandleFunc("GET /sensor-data/{id}", sensorDataHandler.GetSensorDataByDeviceId)
 	mux.HandleFunc("DELETE /sensor-data/{id}", sensorDataHandler.DeleteSensorData)
 

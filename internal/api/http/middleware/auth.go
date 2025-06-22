@@ -11,7 +11,7 @@ import (
 func AuthMiddleware(repo repository.DevicesRepository) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			id := r.PathValue("id")
+			id := r.PathValue("deviceId")
 			ctx := r.Context()
 			apiKey := r.Header.Get("Api-Key")
 

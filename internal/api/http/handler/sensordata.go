@@ -18,9 +18,8 @@ type SensorDataHandler struct {
 }
 
 type CreateSensorDataRequest struct {
-	DeviceId    string  `json:"deviceId"`
 	MetricName  string  `json:"metricName"`
-	Metricvalue float64 `json:"metricValue"`
+	MetricValue float64 `json:"metricValue"`
 }
 
 type CreateSensorDataResponse struct {
@@ -66,16 +65,18 @@ func (h *SensorDataHandler) CreateSensorData(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if request.DeviceId == "" || request.MetricName == "" || request.Metricvalue <= 0 {
+	deviceId := r.PathValue("deviceId")
+
+	if request.MetricName == "" || request.MetricValue <= 0 {
 		http.Error(w, "Device ID, Metric Name and Metric Value are required", http.StatusBadRequest)
 		return
 	}
 
 	ctx := context.Background()
 	sensorData := &model.SensorData{
-		DeviceId:    request.DeviceId,
+		DeviceId:    deviceId,
 		MetricName:  request.MetricName,
-		MetricValue: request.Metricvalue,
+		MetricValue: request.MetricValue,
 		Timestamp:   time.Now(),
 	}
 
@@ -188,3 +189,4 @@ func (h *SensorDataHandler) DeleteSensorData(w http.ResponseWriter, r *http.Requ
 	json.NewEncoder(w).Encode(response)
 	log.Printf("Sensor data with ID %s deleted successfully", sensorDataId)
 }
+
