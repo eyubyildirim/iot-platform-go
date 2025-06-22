@@ -4,6 +4,7 @@ import (
 	"iot-platform/internal/api/http/handler"
 	"iot-platform/internal/api/http/middleware"
 	"iot-platform/internal/database/postgres"
+	"iot-platform/internal/database/postgres/alertrule"
 	"iot-platform/internal/database/postgres/device"
 	"iot-platform/internal/database/postgres/sensordata"
 	"iot-platform/internal/service"
@@ -36,6 +37,12 @@ func main() {
 	}
 	sensorDataService := service.NewSensorDataService(sensorDataRepo)
 
+	alertRuleRepo, err := alertrule.NewAlertRulesPostgresRepository(db)
+	if err != nil {
+		log.Fatal("error connecting to database")
+	}
+	alertRuleService := service.NewAlertRuleService(alertRuleRepo)
+
 	deviceHandler := handler.NewDeviceHandler(*deviceService)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /devices", deviceHandler.ListDevices)
@@ -49,6 +56,15 @@ func main() {
 	mux.Handle("POST /sensor-data/{deviceId}", middleware.AuthMiddleware(deviceRepo)(http.HandlerFunc(sensorDataHandler.CreateSensorData)))
 	mux.HandleFunc("GET /sensor-data/{id}", sensorDataHandler.GetSensorDataByDeviceId)
 	mux.HandleFunc("DELETE /sensor-data/{id}", sensorDataHandler.DeleteSensorData)
+
+	alertRuleHandler := handler.NewAlertRuleHandler(*alertRuleService)
+	mux.HandleFunc("POST /alert-rule", alertRuleHandler.CreateRule)
+	mux.HandleFunc("GET /alert-rule/{id}", alertRuleHandler.GetRuleByID)
+	mux.HandleFunc("PATCH /alert-rule/toggle-status/{id}", alertRuleHandler.ToggleRuleStatus)
+	mux.HandleFunc("DELETE /alert-rule/{id}", alertRuleHandler.DeleteRule)
+	mux.HandleFunc("GET /alert-rule/active", alertRuleHandler.ListActiveRules)
+	mux.HandleFunc("GET /alert-rule/device/{id}", alertRuleHandler.ListByDeviceId)
+	mux.HandleFunc("PATCH /alert-rule/{id}", alertRuleHandler.UpdateRule)
 
 	server := &http.Server{
 		Addr:         ":" + config.Server.Port,

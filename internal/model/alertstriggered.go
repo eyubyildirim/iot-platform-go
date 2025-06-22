@@ -8,7 +8,7 @@ import (
 type AlertTriggered struct {
 	Id                   string          `json:"id"`
 	RuleId               string          `json:"ruleId"`
-	DeviceId             *string         `json:"deviceId,omitempty"`
+	DeviceId             string          `json:"deviceId"`
 	TriggeredMetricValue float64         `json:"triggeredMetricValue"`
 	Details              json.RawMessage `json:"details"`
 	TriggeredAt          time.Time       `json:"triggeredAt"`
