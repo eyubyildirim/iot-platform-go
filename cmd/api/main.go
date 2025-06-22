@@ -48,6 +48,7 @@ func main() {
 			ruleEvalService.Evaluate(context.Background(), data)
 		}
 	}()
+
 	deviceHandler := handler.NewDeviceHandler(*deviceService)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /devices", deviceHandler.ListDevices)
