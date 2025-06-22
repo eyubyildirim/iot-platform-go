@@ -15,12 +15,14 @@ type sensorDataService interface {
 }
 
 type SensorDataService struct {
-	repo repository.SensorDataRepository
+	repo        repository.SensorDataRepository
+	dataChannel chan<- model.SensorData
 }
 
-func NewSensorDataService(repo repository.SensorDataRepository) *SensorDataService {
+func NewSensorDataService(repo repository.SensorDataRepository, dataChannel chan<- model.SensorData) *SensorDataService {
 	return &SensorDataService{
-		repo: repo,
+		repo:        repo,
+		dataChannel: dataChannel,
 	}
 }
 
@@ -29,6 +31,10 @@ func (se *SensorDataService) CreateSensorData(ctx context.Context, sensorData *m
 	if err != nil {
 		return err
 	}
+
+	go func() {
+		se.dataChannel <- *sensorData
+	}()
 
 	return nil
 }
@@ -68,4 +74,3 @@ func (se *SensorDataService) DeleteSensorData(ctx context.Context, id int64) err
 
 	return nil
 }
-

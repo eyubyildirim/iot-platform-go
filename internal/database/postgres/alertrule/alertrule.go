@@ -163,3 +163,28 @@ func (al *AlertRulesPostgresRepository) ToggleRuleStatus(ctx context.Context, id
 
 	return isActive, nil
 }
+
+func (al *AlertRulesPostgresRepository) ListActiveRulesForDevice(ctx context.Context, deviceId string) ([]*model.AlertRule, error) {
+	query := `SELECT id, name, device_id, rule_definition, is_active, created_at FROM alert_rules WHERE is_active = true AND (device_id = $1 OR device_id IS NULL)`
+
+	rows, err := al.db.QueryContext(ctx, query, deviceId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var alertRules []*model.AlertRule
+	for rows.Next() {
+		alertRule := &model.AlertRule{}
+		if err := rows.Scan(&alertRule.Id, &alertRule.Name, &alertRule.DeviceId, &alertRule.RuleDefinition, &alertRule.IsActive, &alertRule.CreatedAt); err != nil {
+			return nil, err
+		}
+		alertRules = append(alertRules, alertRule)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return alertRules, nil
+}

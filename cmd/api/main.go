@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"iot-platform/internal/api/http/handler"
 	"iot-platform/internal/api/http/middleware"
 	"iot-platform/internal/database/postgres"
 	"iot-platform/internal/database/postgres/alertrule"
+	"iot-platform/internal/database/postgres/alertstriggered"
 	"iot-platform/internal/database/postgres/device"
 	"iot-platform/internal/database/postgres/sensordata"
+	"iot-platform/internal/model"
 	"iot-platform/internal/service"
 	"log"
 	"net/http"
@@ -25,24 +28,26 @@ func main() {
 	}
 	defer db.Close()
 
-	deviceRepo, err := device.NewDevicePostgresRepository(db)
-	if err != nil {
-		log.Fatal("error connecting to database")
-	}
+	dataProcessingChannel := make(chan model.SensorData, 1000)
+
+	deviceRepo, _ := device.NewDevicePostgresRepository(db)
+	sensorDataRepo, _ := sensordata.NewSensorDataPostgresRepository(db)
+	alertRuleRepo, _ := alertrule.NewAlertRulesPostgresRepository(db)
+	alertsTrigRepo := alertstriggered.NewAlertsTriggeredPostgresRepository(db)
+
 	deviceService := service.NewDevicesService(deviceRepo)
-
-	sensorDataRepo, err := sensordata.NewSensorDataPostgresRepository(db)
-	if err != nil {
-		log.Fatal("error connecting to database")
-	}
-	sensorDataService := service.NewSensorDataService(sensorDataRepo)
-
-	alertRuleRepo, err := alertrule.NewAlertRulesPostgresRepository(db)
-	if err != nil {
-		log.Fatal("error connecting to database")
-	}
+	sensorDataService := service.NewSensorDataService(sensorDataRepo, dataProcessingChannel)
 	alertRuleService := service.NewAlertRuleService(alertRuleRepo)
+	ruleEvalService := service.NewRuleEvaluationService(alertRuleRepo, alertsTrigRepo)
 
+	log.Println("Starting rule evaluation worker...")
+	go func() {
+		// This loop will run forever, waiting for data to arrive on the channel.
+		for data := range dataProcessingChannel {
+			// Each piece of data is evaluated in turn.
+			ruleEvalService.Evaluate(context.Background(), data)
+		}
+	}()
 	deviceHandler := handler.NewDeviceHandler(*deviceService)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /devices", deviceHandler.ListDevices)

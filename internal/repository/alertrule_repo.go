@@ -13,4 +13,5 @@ type AlertRuleRepository interface {
 	ListActiveRules(ctx context.Context) ([]*model.AlertRule, error)
 	UpdateRule(ctx context.Context, alertRule *model.AlertRule) error
 	ToggleRuleStatus(ctx context.Context, id string) (bool, error)
+	ListActiveRulesForDevice(ctx context.Context, deviceId string) ([]*model.AlertRule, error)
 }
