@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"iot-platform/internal/model"
+	"log"
 )
 
 type AlertsTriggeredPostgresRepository struct {
@@ -17,6 +18,8 @@ func NewAlertsTriggeredPostgresRepository(db *sql.DB) *AlertsTriggeredPostgresRe
 
 func (r *AlertsTriggeredPostgresRepository) Create(ctx context.Context, alert *model.AlertTriggered) error {
 	query := `INSERT INTO alerts_triggered (id, rule_id, device_id, triggered_value, details) VALUES ($1, $2, $3, $4, $5)`
+
+	log.Printf("new alert trigger: %s", alert.Details)
 
 	_, err := r.db.ExecContext(ctx, query,
 		alert.Id,

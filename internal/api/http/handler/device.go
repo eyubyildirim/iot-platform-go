@@ -12,14 +12,15 @@ import (
 )
 
 type CreateDeviceRequest struct {
-	Name   string `json:"name"`
-	Kind   string `json:"kind"`
-	ApiKey string `json:"apiKey"`
+	Name string `json:"name"`
+	Kind string `json:"kind"`
 }
 
 type CreateDeviceResponse struct {
 	Message string `json:"message"`
 	Id      string `json:"id"`
+	ApiKey  string `json:"apiKey"`
+	Kind    string `json:"kind"`
 	Status  string `json:"status"`
 }
 
@@ -66,15 +67,14 @@ func (h *DeviceHandler) CreateDevice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" || req.Kind == "" || req.ApiKey == "" {
+	if req.Name == "" || req.Kind == "" {
 		http.Error(w, "name, type and apiKey are required", http.StatusBadRequest)
 		return
 	}
 
 	newDevice := &model.Device{
-		Name:   req.Name,
-		Kind:   req.Kind,
-		ApiKey: req.ApiKey,
+		Name: req.Name,
+		Kind: req.Kind,
 	}
 	deviceId, err := h.service.CreateDevice(r.Context(), newDevice)
 	if err != nil {
@@ -85,6 +85,8 @@ func (h *DeviceHandler) CreateDevice(w http.ResponseWriter, r *http.Request) {
 	response := CreateDeviceResponse{
 		Message: "Device created successfully",
 		Id:      deviceId,
+		Kind:    newDevice.Kind,
+		ApiKey:  newDevice.ApiKey,
 		Status:  "200",
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -163,9 +165,8 @@ func (h *DeviceHandler) UpdateDevice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newDevice := &model.Device{
-		Name:   req.Name,
-		Kind:   req.Kind,
-		ApiKey: req.ApiKey,
+		Name: req.Name,
+		Kind: req.Kind,
 	}
 
 	if err := h.service.UpdateDevice(r.Context(), id, newDevice); err != nil {

@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"iot-platform/internal/model"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+	"github.com/williepotgieter/keymaker"
 )
 
 var (
@@ -32,11 +33,18 @@ func NewDevicePostgresRepository(db *sql.DB) (*DevicePostgresRepository, error) 
 
 func (de *DevicePostgresRepository) SaveDevice(ctx context.Context, device *model.Device) (string, error) {
 	if device.Id == "" {
-		fmt.Println("Test")
 		newDeviceId := uuid.New().String()
-		_, err := de.db.Exec(`INSERT INTO devices (id, name, kind, api_key) VALUES ($1, $2, $3, $4)`, newDeviceId, device.Name, device.Kind, device.ApiKey)
+		newApiKey, err := keymaker.NewApiKey("device", 32)
+		device.ApiKey = newApiKey.String()
 
 		if err != nil {
+			log.Printf("could not generate api key: %s", err)
+			return "", err
+		}
+
+		_, err = de.db.Exec(`INSERT INTO devices (id, name, kind, api_key) VALUES ($1, $2, $3, $4)`, newDeviceId, device.Name, device.Kind, device.ApiKey)
+		if err != nil {
+			log.Printf("could not create device: %s", err)
 			return newDeviceId, err
 		}
 

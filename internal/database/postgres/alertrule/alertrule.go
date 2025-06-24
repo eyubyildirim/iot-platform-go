@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"iot-platform/internal/model"
+
+	"github.com/google/uuid"
 )
 
 type AlertRulesPostgresRepository struct {
@@ -26,10 +28,12 @@ func NewAlertRulesPostgresRepository(db *sql.DB) (*AlertRulesPostgresRepository,
 }
 
 func (al *AlertRulesPostgresRepository) CreateRule(ctx context.Context, alertRule *model.AlertRule) (string, error) {
-	query := `INSERT INTO alert_rules (name, device_id, rule_definition, is_active) VALUES ($1, $2, $3, $4) RETURNING id, craeted_at, updated_at`
+	query := `INSERT INTO alert_rules (id, name, device_id, rule_definition, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at, updated_at`
 
+	alertRule.Id = uuid.NewString()
 	var id string
 	err := al.db.QueryRowContext(ctx, query,
+		alertRule.Id,
 		alertRule.Name,
 		alertRule.DeviceId,
 		alertRule.RuleDefinition,

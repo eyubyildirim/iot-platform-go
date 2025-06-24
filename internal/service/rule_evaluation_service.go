@@ -27,6 +27,7 @@ func NewRuleEvaluationService(alertRuleRepo repository.AlertRuleRepository, aler
 }
 
 func (ru *RuleEvaluationService) Evaluate(ctx context.Context, data model.SensorData) {
+	log.Printf("evaluating rules for metric name: %s", data.MetricName)
 	rules, err := ru.alertRuleRepo.ListActiveRulesForDevice(ctx, data.DeviceId)
 	if err != nil {
 		log.Printf("could not fetch rules for device with id: %s, err: %s", data.DeviceId, err)

@@ -76,6 +76,8 @@ func (h *AlertRuleHandler) CreateRule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ruleDefBytes, err := json.Marshal(req.RuleDefinition)
+	log.Printf("received new rule with definition: %v", req)
+	log.Printf("received new rule with definition: %s", ruleDefBytes)
 
 	alertRule := &model.AlertRule{
 		Name:           req.Name,
@@ -86,6 +88,7 @@ func (h *AlertRuleHandler) CreateRule(w http.ResponseWriter, r *http.Request) {
 
 	id, err := h.service.CreateRule(r.Context(), alertRule)
 	if err != nil {
+		log.Printf("Failed to create alert rule: %s", err)
 		http.Error(w, "Failed to create alert rule", http.StatusInternalServerError)
 		return
 	}
