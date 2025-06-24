@@ -4,6 +4,8 @@ import (
 	"context"
 	"iot-platform/internal/api/http/handler"
 	"iot-platform/internal/api/http/middleware"
+	"iot-platform/internal/api/notifier"
+	"iot-platform/internal/api/notifier/notifiers"
 	"iot-platform/internal/database/postgres"
 	"iot-platform/internal/database/postgres/alertrule"
 	"iot-platform/internal/database/postgres/alertstriggered"
@@ -29,6 +31,7 @@ func main() {
 	defer db.Close()
 
 	dataProcessingChannel := make(chan model.SensorData, 1000)
+	notificationChannel := make(chan notifier.NotificationPayload, 100)
 
 	deviceRepo, _ := device.NewDevicePostgresRepository(db)
 	sensorDataRepo, _ := sensordata.NewSensorDataPostgresRepository(db)
@@ -38,7 +41,8 @@ func main() {
 	deviceService := service.NewDevicesService(deviceRepo)
 	sensorDataService := service.NewSensorDataService(sensorDataRepo, dataProcessingChannel)
 	alertRuleService := service.NewAlertRuleService(alertRuleRepo)
-	ruleEvalService := service.NewRuleEvaluationService(alertRuleRepo, alertsTrigRepo)
+	ruleEvalService := service.NewRuleEvaluationService(alertRuleRepo, alertsTrigRepo, notificationChannel)
+	notifService := service.NewNotificationService(notifiers.LogNotifier{})
 
 	log.Println("Starting rule evaluation worker...")
 	go func() {
@@ -46,6 +50,13 @@ func main() {
 		for data := range dataProcessingChannel {
 			// Each piece of data is evaluated in turn.
 			ruleEvalService.Evaluate(context.Background(), data)
+		}
+	}()
+
+	log.Println("Starting notification dispatcher worker...")
+	go func() {
+		for payload := range notificationChannel {
+			notifService.Dispatch(payload.Alert, payload.Rule)
 		}
 	}()
 
