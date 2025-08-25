@@ -6,7 +6,8 @@ import (
 )
 
 type ServerConfig struct {
-	Port string `json:"port"`
+	Port     string `json:"port"`
+	MqttPort string `json:"mqttPort"`
 }
 
 type DatabaseConfig struct {
@@ -54,6 +55,10 @@ func loadConfiguration(path string) (*Config, error) {
 
 	if config.Server.Port == "" {
 		config.Server.Port = "3000"
+	}
+
+	if config.Server.MqttPort == "" {
+		config.Server.MqttPort = "1883"
 	}
 
 	return &config, nil

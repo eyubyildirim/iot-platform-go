@@ -4,6 +4,7 @@ import (
 	"context"
 	"iot-platform/internal/api/http/handler"
 	"iot-platform/internal/api/http/middleware"
+	mqttserver "iot-platform/internal/api/mqtt"
 	"iot-platform/internal/api/notifier"
 	"iot-platform/internal/api/notifier/notifiers"
 	"iot-platform/internal/database/postgres"
@@ -59,6 +60,12 @@ func main() {
 			notifService.Dispatch(payload.Alert, payload.Rule)
 		}
 	}()
+
+	// start MQTT server for sensor data ingestion
+	mqttSrv := mqttserver.NewServer(":"+config.Server.MqttPort, sensorDataService)
+	if err := mqttSrv.ListenAndServe(); err != nil {
+		log.Fatalf("Failed to start MQTT server: %v", err)
+	}
 
 	deviceHandler := handler.NewDeviceHandler(*deviceService)
 	mux := http.NewServeMux()
