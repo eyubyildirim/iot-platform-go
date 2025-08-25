@@ -81,6 +81,8 @@ func (ru *RuleEvaluationService) Evaluate(ctx context.Context, data model.Sensor
 			isTriggered = data.MetricValue < def.MetricValue
 		case "eq":
 			isTriggered = data.MetricValue == def.MetricValue
+		case "between":
+			isTriggered = data.MetricValue >= def.MetricValueMin && data.MetricValue <= def.MetricValueMax
 		}
 
 		ru.mu.Lock()
@@ -106,8 +108,6 @@ func (ru *RuleEvaluationService) Evaluate(ctx context.Context, data model.Sensor
 				state.AlertSent = true
 				ru.stateCache[key] = state
 			}
-
-			ru.createTriggeredAlert(ctx, rule, data)
 		} else {
 			if isTracked {
 				log.Printf("condition for rule '%s' with device id '%s' has cleared, resetting.\n", rule.Name, data.DeviceId)
